@@ -1,6 +1,7 @@
 import os
 import cv2
 import random
+import cv2
 import numpy as np 
 import pandas as pd
 from sklearn.pipeline import Pipeline
@@ -13,27 +14,29 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 
 # get a random sample of images from the train folder of challenge 1
-# input:  path of the train folder
+# input:  path of the folder with train and test subfolders
 #         amount of elements you want to sample, preferable even
-# output: list of shuffle full path of samples, the path have the clue for label 
-def get_sample(path = "/home/emily/Desktop/CAD/train/", amount=1000):
-    FOLDER_DIR = path
-
+#         percentage of train from the total amount
+#         percentage of test from the total amount
+# output: list of shuffle samples from training and samples from test
+def get_sample(path = "/home/emily/Desktop/CAD/challenge1/train", amount=1000):
+    
     dictF = {}
     features = pd.DataFrame(dtype=np.float64)
+    
+    _, _, nevus = next(os.walk(os.path.join(path, "nevus")))
+    _, _, others = next(os.walk(os.path.join(path, "others")))
+    
+    randnevus = random.choices(nevus, k=int(amount/2))
+    randothers = random.choices(others, k=int(amount/2))
 
-    _, _, nevus = next(os.walk(os.path.join(FOLDER_DIR,'nevus')))
-    _, _, others = next(os.walk(os.path.join(FOLDER_DIR,'others')))
-
-    subnevus = random.choices(nevus, k=int(amount/2))
-    subothers = random.choices(others, k=int(amount/2))
-
-    subnevus = [ os.path.join(FOLDER_DIR,'nevus', item) for item in subnevus ]
-    subothers = [ os.path.join(FOLDER_DIR,'others', item) for item in subothers ]
+    subnevus = [ os.path.join(path,'nevus', item) for item in randnevus ]
+    subothers = [ os.path.join(path,'others', item) for item in randothers ]
 
     samples = [*subnevus, *subothers]
-    np.random.shuffle(samples)
     
+    np.random.shuffle(samples)
+    print(len(samples))
     return samples
 
 # hair removal method base on bottom hat 
@@ -53,7 +56,32 @@ def hair_removal_BH(matrix, kernel_size = 17):
 # RELEVANT
 # hairs near the edge of the image are not fully removed
 
+# segmentation
+def segmentation_kmeans(hairless):
+    # color space change
+    hairless = cv2.cvtColor(output_bh, cv2.COLOR_BGR2RGB)
+    # reshape the image to be a list of pixels
+    data = hairless.reshape((hairless.shape[0] * hairless.shape[1], 3))
+    data = np.float32(data)
 
+    # Define criteria = ( type, max_iter = 10 , epsilon = 1.0 )
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+
+    # Set flags (Just to avoid line break in the code)
+    flags = cv2.KMEANS_RANDOM_CENTERS
+
+    # Apply KMeans
+    compactness,labels,centers = cv2.kmeans(data,2,None,criteria,10,flags)
+
+    centers = np.uint8(centers)
+    res = centers[labels.flatten()]
+    res2 = res.reshape((hairless.shape))
+
+    gray = cv2.cvtColor(res2, cv2.COLOR_RGB2GRAY)
+
+    mask = cv2.normalize(gray, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+
+    return mask
 
 #################### MACHINE LEARNING ####################
 

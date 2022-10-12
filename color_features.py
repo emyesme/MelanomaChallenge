@@ -98,9 +98,6 @@ def extract_color_features(image):
 
     name_features.extend(['gray_mean','gray_std','gray_skew','gray_kurt'])
 
-    dict_features = {}
-    
-    for i in range(len(name_features)):
-        dict_features[name_features[i]] = color_features[i]
+    dict_features = {name_features[i]: color_features[i] for i in range(len(name_features))}
     
     return dict_features    
