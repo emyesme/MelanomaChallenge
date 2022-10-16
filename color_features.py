@@ -104,4 +104,3 @@ def extract_color_features(image):
         dict_features[name_features[i]] = color_features[i]
     
     return dict_features    
-    
