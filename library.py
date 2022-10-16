@@ -183,20 +183,30 @@ def knn(X_train, y_train, cv=5, best_params = dict()):
 
   return classifier, best_params
 
+from sklearn.feature_selection import RFE
+from sklearn.feature_selection import SelectFromModel
+from sklearn.feature_selection import SequentialFeatureSelector
+from sklearn.feature_selection import SelectKBest, f_classif, chi2, mutual_info_classif
 
 # fit report
 def fit_report(classifier, X_train, y_train, X_test, y_test):
     
     pipe = Pipeline([
         ('scale', StandardScaler()),
-        #('reduce_dims', PCA(n_components=4)),
+        ('select from model', SelectFromModel(RandomForestClassifier(random_state=42, n_jobs = -1))),
+        #('selector rfe', RFE(RandomForestClassifier(random_state=42, n_jobs = -1))),
+        #('reduce_dims', PCA(n_components=150)),
+        #('mutual_info_classif, SelectKBest(mutual_info_classif, k=100)),
         ('clf', classifier)])
     
+    print("current pipeline")
+    print(pipe)
+    
+    print("###############")
     
     pipe.fit(X_train, y_train)
 
     pred = pipe.predict(X_test) 
-
     
     print(" ### Report ###")
     print(classification_report(y_test, pred))
@@ -212,3 +222,5 @@ def fit_report(classifier, X_train, y_train, X_test, y_test):
 
     print("### confusion matrix ###")
     print(confusion_matrix(y_test, pred)) # diagonal stronger
+    
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
