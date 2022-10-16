@@ -13,6 +13,23 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 
+def writeFeatures(features, flag, folder, name):
+  if(flag):
+    features.to_csv(os.path.join(folder,
+                                 name),
+                    mode='a',
+                    header=True,
+                    index=False)
+    flag = False
+  else:
+    features.to_csv(os.path.join(folder,
+                                 name),
+                  mode='a',
+                  header=False,
+                  index=False)
+  return flag
+
+
 # get a random sample of images from the train folder of challenge 1
 # input:  path of the folder with train and test subfolders
 #         amount of elements you want to sample, preferable even
