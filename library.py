@@ -4,9 +4,7 @@ import random
 import cv2
 import numpy as np 
 import pandas as pd
-from sklearn.pipeline import Pipeline
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
@@ -72,6 +70,38 @@ def hair_removal_BH(matrix, kernel_size = 17):
 
 # RELEVANT
 # hairs near the edge of the image are not fully removed
+
+
+
+#https://medium.com/@er_95882/colour-vision-lands-experiments-with-colour-constancy-white-balance-and-examples-in-python-93a71d0c4cbe
+def grey_world(image):
+    image = image / 255.
+
+    pWhite = 0.05
+    
+    # In OpenCV the channels order is Blue-Green-Red
+    red = image[:, :, 2]
+    green = image[:, :, 1]
+    blue = image[:, :, 0]
+
+    red = red / np.mean(red)
+    green = green / np.mean(green)
+    blue = blue / np.mean(blue)
+
+    red_sorted = sorted(red.ravel())
+    green_sorted = sorted(green.ravel())
+    blue_sorted = sorted(blue.ravel())
+
+    total = len(red_sorted)
+
+    max_index = int(total * (1. - pWhite))
+    image[:, :, 2] = red / red_sorted[max_index]
+    image[:, :, 1] = green / green_sorted[max_index]
+    image[:, :, 0] = blue / blue_sorted[max_index]
+
+    return image
+
+
 
 # segmentation
 def segmentation_kmeans(hairless):
@@ -200,24 +230,10 @@ def knn(X_train, y_train, cv=5, best_params = dict()):
 
   return classifier, best_params
 
-from sklearn.feature_selection import RFE
-from sklearn.feature_selection import SelectFromModel
-from sklearn.feature_selection import SequentialFeatureSelector
-from sklearn.feature_selection import SelectKBest, f_classif, chi2, mutual_info_classif
+
 
 # fit report
-def fit_report(classifier, X_train, y_train, X_test, y_test):
-    
-    pipe = Pipeline([
-        ('scale', StandardScaler()),
-        ('select from model', SelectFromModel(RandomForestClassifier(random_state=42, n_jobs = -1))),
-        #('selector rfe', RFE(RandomForestClassifier(random_state=42, n_jobs = -1))),
-        #('reduce_dims', PCA(n_components=150)),
-        #('mutual_info_classif, SelectKBest(mutual_info_classif, k=100)),
-        ('clf', classifier)])
-    
-    print("current pipeline")
-    print(pipe)
+def fit_report(pipe, X_train, y_train, X_test, y_test):
     
     print("###############")
     
