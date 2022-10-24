@@ -2,8 +2,11 @@ import os
 import cv2
 import random
 import cv2
+import pickle
 import numpy as np 
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report
@@ -233,9 +236,9 @@ def knn(X_train, y_train, cv=5, best_params = dict()):
 
 
 # fit report
-def fit_report(pipe, X_train, y_train, X_test, y_test):
+def fit_report(pipe, X_train, y_train, X_test, y_test, pipelineName='', classifierName=''):
     
-    print("###############")
+    print("*****************************************************")
     
     pipe.fit(X_train, y_train)
 
@@ -251,9 +254,19 @@ def fit_report(pipe, X_train, y_train, X_test, y_test):
     print(accuracy_score(y_test, pred))
 
     print("### f1_score ###")
-    print(f1_score(y_test, pred)) # 1 is best
-
+    print(f1_score(y_test, pred, average='weighted')) # 1 is best
+    
     print("### confusion matrix ###")
     print(confusion_matrix(y_test, pred)) # diagonal stronger
+    
+    df_cm = confusion_matrix(y_test, pred)
+    plt.figure(figsize=(5,5))
+    sns.heatmap(df_cm, annot=True, fmt='d') # font size
+    plt.savefig(f'confmat_{pipelineName}_{classifierName}.png', format='png')
+
+    # Save the final model with its respective fold
+    filename = f'model_{classifierName}_{pipelineName}.pkl'
+    pickle.dump(pipe, open( filename, 'wb'))
+    print(f"Model {pipe} of {classifierName} was saved!")  
     
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
