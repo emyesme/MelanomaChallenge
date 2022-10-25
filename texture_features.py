@@ -28,8 +28,7 @@ def extract_orb(img, featuresNumber): # should be 64
 #   organization={Ieee}
 # }
     
-    
-    orb = cv2.ORB_create(nfeatures = featuresNumber)
+    orb = cv2.ORB_create(nfeatures = featuresNumber, fastThreshold=0, edgeThreshold=0)
 
     # find the keypoints with ORB
     kp = orb.detect(img,None)

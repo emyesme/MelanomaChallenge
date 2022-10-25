@@ -2,11 +2,8 @@ import os
 import cv2
 import random
 import cv2
-import pickle
 import numpy as np 
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report
@@ -30,6 +27,74 @@ def writeFeatures(features, flag, folder, name):
                   index=False)
   return flag
 
+# get a random sample of images from the train folder of challenge 1
+# input:  path of the folder with train and test subfolders
+#         amount of elements you want to sample, preferable even
+#         percentage of train from the total amount
+#         percentage of test from the total amount
+# output: list of shuffle samples from training and samples from test
+def get_sample_ch2(path = "/home/emily/Desktop/CAD/challenge2/train", output="", flag=True, cbcc=1993, cmel=2713, cscc=376):
+    
+    dictF = {}
+    features = pd.DataFrame(dtype=np.float64)
+    
+    _, _, bcc = next(os.walk(os.path.join(path, "bcc")))
+    _, _, mel = next(os.walk(os.path.join(path, "mel")))
+    _, _, scc = next(os.walk(os.path.join(path, "scc")))
+    
+    bcc = [ os.path.join(path,'bcc', item) for item in bcc ]
+    mel = [ os.path.join(path,'mel', item) for item in mel ]
+    scc = [ os.path.join(path,'scc', item) for item in scc ]
+    
+    # if output file exists
+    if os.path.exists(output):
+        # no header when writing after
+        flag = False
+        # read file
+        outputfile = pd.read_csv(output)    
+        # get names already run
+        names = outputfile["name"]
+        # divide the names in the two categories
+        
+        doneBcc = []
+        doneMel = []
+        doneScc = []
+        all_names = names.values.tolist()
+        
+        for name in names.values.tolist():
+            # element  not nan
+            if isinstance(name, str):
+                if "bcc" in name:
+                    doneNevus.append(name)
+                if "mel" in name:
+                    doneMel.append(name)
+                if "scc" in name:
+                    doneScc.append(name)
+                    
+        # getting the pending nevus and others files names
+        pendingBcc = list(set(bcc) - set(doneBcc))
+        pendingMel = list(set(mel) - set(doneMel))
+        pendingScc = list(set(scc) - set(doneScc))
+        
+        randBcc = random.sample(pendingBcc, k=(cbcc-len(pendingBcc)))
+        randMel = random.sample(pendingMel, k=(cmel-len(pendingMel)))
+        randScc = random.sample(pendingScc, k=(cscc-len(pendingScc)))
+
+    else:
+        randBcc = random.sample(bcc, k=int(cbcc))
+        randMel = random.sample(mel, k=int(cmel))
+        randScc = random.sample(scc, k=int(cscc))
+              
+    
+    subbcc = [ os.path.join(path,'bcc', item) for item in randBcc ]
+    submel = [ os.path.join(path,'mel', item) for item in randMel ]
+    subscc = [ os.path.join(path,'scc', item) for item in randScc ]
+    
+    samples = [*subbcc, *submel, *subscc]
+    
+    np.random.shuffle(samples)
+    print(len(samples))
+    return samples
 
 # get a random sample of images from the train folder of challenge 1
 # input:  path of the folder with train and test subfolders
@@ -37,25 +102,64 @@ def writeFeatures(features, flag, folder, name):
 #         percentage of train from the total amount
 #         percentage of test from the total amount
 # output: list of shuffle samples from training and samples from test
-def get_sample(path = "/home/emily/Desktop/CAD/challenge1/train", amount=1000):
+def get_sample(path = "/home/emily/Desktop/CAD/challenge1/train", output="", flag=True, amount=1000):
     
+    # initial variables
     dictF = {}
     features = pd.DataFrame(dtype=np.float64)
     
+    # get all names
     _, _, nevus = next(os.walk(os.path.join(path, "nevus")))
     _, _, others = next(os.walk(os.path.join(path, "others")))
     
-    randnevus = random.choices(nevus, k=int(amount/2))
-    randothers = random.choices(others, k=int(amount/2))
+    nevus = [ os.path.join(path,'nevus', item) for item in nevus ]
+    others = [ os.path.join(path,'others', item) for item in others ]
+    
+    # if output file exists
+    if os.path.exists(output):
+        # no header when writing after
+        flag = False
+        # read file
+        outputfile = pd.read_csv(output)    
+        # get names already run
+        names = outputfile["name"]
+        # divide the names in the two categories
+        
+        doneNevus = []
+        doneOthers = []
+        all_names = names.values.tolist()
+        
+        for name in names.values.tolist():
+            # element  not nan
+            if isinstance(name, str):
+                if "nevus" in name:
+                    doneNevus.append(name)
+                if "others" in name:
+                    doneOthers.append(name)
+                    
+        # getting the pending nevus and others files names
+        pendingNevus = list(set(nevus) - set(doneNevus))
+        pendingOthers = list(set(others) - set(doneOthers))
+        # 
+        print(abs(int(amount/2) - len(doneNevus)))
+        print(abs(int(amount/2) - len(doneOthers)))
+        randnevus = random.sample(pendingNevus, k=abs(int(amount/2) - len(doneNevus)))
+        randothers = random.sample(pendingOthers, k=abs(int(amount/2) - len(doneOthers)))
 
+    else:
+        randnevus = random.sample(nevus, k=int(amount/2))
+        randothers = random.sample(others, k=int(amount/2))
+              
     subnevus = [ os.path.join(path,'nevus', item) for item in randnevus ]
     subothers = [ os.path.join(path,'others', item) for item in randothers ]
 
     samples = [*subnevus, *subothers]
     
     np.random.shuffle(samples)
-    print(len(samples))
-    return samples
+    print("samples ", len(samples))
+    return samples, flag
+
+
 
 # hair removal method base on bottom hat 
 #https://github.com/MujtabaAhmad0928/SCRS/blob/fe2f6a7ed9fd1897f8c47da509b2c8a399ea4910/preprocessing.py
@@ -101,10 +205,27 @@ def grey_world(image):
     image[:, :, 2] = red / red_sorted[max_index]
     image[:, :, 1] = green / green_sorted[max_index]
     image[:, :, 0] = blue / blue_sorted[max_index]
-
+    
     return image
 
+#https://stackoverflow.com/questions/25008458/how-to-apply-clahe-on-rgb-color-images
+def clahe_rgb(img, gridsize=100):
 
+    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+
+    #lab_planes = cv2.split(lab)
+    
+    clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(gridsize,gridsize))
+
+    #lab_planes = np.array([map(list, lab_planes)])
+    
+    lab[0] = clahe.apply(lab[0])
+
+    #lab = cv2.merge(lab_planes)
+
+    result = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+    
+    return result
 
 # segmentation
 def segmentation_kmeans(hairless):
@@ -236,7 +357,10 @@ def knn(X_train, y_train, cv=5, best_params = dict()):
 
 
 # fit report
-def fit_report(pipe, X_train, y_train, X_test, y_test, pipelineName='', classifierName=''):
+def fit_report(pipe, X_train, y_train, X_test, y_test, pipelineName='', classifierName='', balancingType = ''):
+    # To run this without problems, you need to define RESULTS_DIR, which is the path where the models and the confusion matrix will be
+    # kept.
+    
     
     print("*****************************************************")
     
@@ -251,10 +375,12 @@ def fit_report(pipe, X_train, y_train, X_test, y_test, pipelineName='', classifi
     print(pipe.score(X_test, y_test))
 
     print(" ### accuracy ###")
-    print(accuracy_score(y_test, pred))
+    acc = accuracy_score(y_test, pred)
+    print(acc)
 
     print("### f1_score ###")
-    print(f1_score(y_test, pred, average='weighted')) # 1 is best
+    f1 = f1_score(y_test, pred, average='weighted')
+    print(f1) # 1 is best
     
     print("### confusion matrix ###")
     print(confusion_matrix(y_test, pred)) # diagonal stronger
@@ -262,11 +388,13 @@ def fit_report(pipe, X_train, y_train, X_test, y_test, pipelineName='', classifi
     df_cm = confusion_matrix(y_test, pred)
     plt.figure(figsize=(5,5))
     sns.heatmap(df_cm, annot=True, fmt='d') # font size
-    plt.savefig(f'confmat_{pipelineName}_{classifierName}.png', format='png')
+    plt.savefig(os.path.join(RESULTS_DIR, f'confmat_{pipelineName}_{classifierName}_{balancingType}.png'), format='png')
 
     # Save the final model with its respective fold
-    filename = f'model_{classifierName}_{pipelineName}.pkl'
-    pickle.dump(pipe, open( filename, 'wb'))
-    print(f"Model {pipe} of {classifierName} was saved!")  
+    filename = f'model_{classifierName}_{pipelineName}_{balancingType}.pkl'
+    pickle.dump(pipe, open(os.path.join(RESULTS_DIR, filename), 'wb'))
+    print(f"Model {pipelineName} of {classifierName} was saved!")  
     
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+    return acc, f1
