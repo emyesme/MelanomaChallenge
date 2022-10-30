@@ -75,15 +75,10 @@ def get_sample_ch2(path = "/home/emily/Desktop/CAD/challenge2/train", output="",
         pendingBcc = list(set(bcc) - set(doneBcc))
         pendingMel = list(set(mel) - set(doneMel))
         pendingScc = list(set(scc) - set(doneScc))
-        print(len(pendingBcc))
-        print(len(pendingMel))
-        print(len(pendingScc))
-        #randBcc = random.sample(pendingBcc, k=len(pendingBcc))
-        #randMel = random.sample(pendingMel, k=len(pendingMel))
-        #randScc = random.sample(pendingScc, k=len(pendingScc))#
-        randBcc = pendingBcc
-        randMel = pendingMel
-        randScc = pendingScc
+        
+        randBcc = random.sample(pendingBcc, k=(cbcc-len(pendingBcc)))
+        randMel = random.sample(pendingMel, k=(cmel-len(pendingMel)))
+        randScc = random.sample(pendingScc, k=(cscc-len(pendingScc)))
 
     else:
         randBcc = random.sample(bcc, k=int(cbcc))
@@ -362,9 +357,12 @@ def knn(X_train, y_train, cv=5, best_params = dict()):
 
 
 # fit report
-def fit_report(pipe, X_train, y_train, X_test, y_test):
+def fit_report(pipe, X_train, y_train, X_test, y_test, pipelineName='', classifierName='', balancingType = ''):
+    # To run this without problems, you need to define RESULTS_DIR, which is the path where the models and the confusion matrix will be
+    # kept.
     
-    print("###############")
+    
+    print("*****************************************************")
     
     pipe.fit(X_train, y_train)
 
@@ -377,12 +375,26 @@ def fit_report(pipe, X_train, y_train, X_test, y_test):
     print(pipe.score(X_test, y_test))
 
     print(" ### accuracy ###")
-    print(accuracy_score(y_test, pred))
+    acc = accuracy_score(y_test, pred)
+    print(acc)
 
     print("### f1_score ###")
-    print(f1_score(y_test, pred)) # 1 is best
-
+    f1 = f1_score(y_test, pred, average='weighted')
+    print(f1) # 1 is best
+    
     print("### confusion matrix ###")
     print(confusion_matrix(y_test, pred)) # diagonal stronger
     
+    df_cm = confusion_matrix(y_test, pred)
+    plt.figure(figsize=(5,5))
+    sns.heatmap(df_cm, annot=True, fmt='d') # font size
+    plt.savefig(os.path.join(RESULTS_DIR, f'confmat_{pipelineName}_{classifierName}_{balancingType}.png'), format='png')
+
+    # Save the final model with its respective fold
+    filename = f'model_{classifierName}_{pipelineName}_{balancingType}.pkl'
+    pickle.dump(pipe, open(os.path.join(RESULTS_DIR, filename), 'wb'))
+    print(f"Model {pipelineName} of {classifierName} was saved!")  
+    
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+    return acc, f1
