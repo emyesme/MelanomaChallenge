@@ -36,7 +36,6 @@ def extract_orb(img, featuresNumber): # should be 64
     # compute the descriptors with ORB
     kp, des = orb.compute(img, kp)
     
-    
     features = []
     for vector in des:
         features.extend(vector)
