@@ -65,7 +65,7 @@ def get_sample_ch2(path = "/home/emily/Desktop/CAD/challenge2/train", output="",
             # element  not nan
             if isinstance(name, str):
                 if "bcc" in name:
-                    doneNevus.append(name)
+                    doneBcc.append(name)
                 if "mel" in name:
                     doneMel.append(name)
                 if "scc" in name:
@@ -94,7 +94,7 @@ def get_sample_ch2(path = "/home/emily/Desktop/CAD/challenge2/train", output="",
     
     np.random.shuffle(samples)
     print(len(samples))
-    return samples
+    return samples, flag
 
 # get a random sample of images from the train folder of challenge 1
 # input:  path of the folder with train and test subfolders
