@@ -35,10 +35,18 @@ def extract_orb(img, featuresNumber): # should be 64
 
     # compute the descriptors with ORB
     kp, des = orb.compute(img, kp)
-
-    featuresDict = {}
-    for i in range(des.shape[0]):
-        for j in range(des.shape[1]):
-            featuresDict['orb_'+str(i)+str(j)] = des[i][j]
-
-    return featuresDict
+    
+    print(len(des))
+    print(des)
+    
+    features = []
+    for vector in des:
+        features.extend(vector)
+            
+    dict_features = {}
+        
+    for i in range(len(features)):
+        dict_features['orb_'+str(i)] = features[i]
+    
+    
+    return dict_features
