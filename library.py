@@ -96,6 +96,20 @@ def get_sample_ch2(path = "/home/emily/Desktop/CAD/challenge2/train", output="",
     print(len(samples))
     return samples, flag
 
+
+def get_column_names(dataframe):
+    #returns the column name as values
+    
+    return dataframe['name'].values.tolist()
+    
+
+def uniques_names(entire_list, subset):
+    # Given a list of names take the ones that are not part of that list
+    not_used = [i for i in entire_list if i not in subset]
+    
+    return not_used
+
+
 # get a random sample of images from the train folder of challenge 1
 # input:  path of the folder with train and test subfolders
 #         amount of elements you want to sample, preferable even
@@ -398,3 +412,4 @@ def fit_report(pipe, X_train, y_train, X_test, y_test, pipelineName='', classifi
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
     return acc, f1
+
